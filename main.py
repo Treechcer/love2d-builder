@@ -1,0 +1,65 @@
+import sys
+import os
+import re
+import json
+
+global inputs
+
+pathStart = ""
+inputs = {
+    "--asepriteFolder" : "aseprite", #default currect folder, path is relative to where start the script
+    "--outputFolder" : "assets", #destination of covertType files!
+    "--convertType" : ".png", #type to which you convert
+    "--test" : False, #just test value, will do NOTHING!!!
+    "--asepriteCommand" : "aseprite"
+}
+
+log = open("love2d-builder/logger.txt", "a")
+
+def main():
+    global pathStart
+    try:
+        with open("love2d-builder/config.json") as f:
+            config = json.loads(f.read())
+    except:
+        log.write("[CONFIG] ./love2d-builder/config.json not found. Using default values and values passed into the script.")
+        print("Log file not found.")
+
+    for i in config:
+        inputs["--" + i] = config[i]
+
+
+    tab = sys.argv
+    tab = tab[1::1]
+    for i in range(0, len(tab), 2):
+        #inputs[tab[i]] = inputs[tab[i+1]]
+        #print(inputs[tab[i]], i)
+        if type(inputs[tab[i]]) == bool:
+            inputs[tab[i]] = not inputs[tab[i]]
+            i -= 1
+        else:
+            inputs[tab[i]] = tab[i+1]
+
+    pathStart = re.sub(f"{inputs["--asepriteFolder"]}$", "", f"{os.path.abspath(inputs["--asepriteFolder"])}")
+    
+    #print(os.listdir(inputs["--asepriteFolder"]))
+    #print(os.listdir(inputs["--outputFolder"]))
+
+    asespriteFiles = os.listdir(inputs["--asepriteFolder"])
+
+    doFilesFromSource(inputs["--asepriteFolder"])
+
+def doFilesFromSource(src):
+    src = os.path.abspath(src)
+    for i in os.listdir(src):
+        if not os.path.isfile(os.path.abspath(src + "/" + i)):
+            doFilesFromSource(src + "/" + i)
+        else:
+            pathToNewFile = re.sub(inputs["--asepriteFolder"], inputs["--outputFolder"], src)
+            cmd = inputs["--asepriteCommand"] + " -b " + os.path.abspath(src + "/" + i) + " --save-as " + pathToNewFile + "/" + re.sub("\\.aseprite",inputs["--convertType"],i)
+            os.system(cmd)
+            log.write(f"[FILE EXPORT] exported file with commad '{cmd}'\n")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,5 @@
+{
+    "asepriteFolder" : "aseprite",
+    "outputFolder" : "assets",
+    "asepriteCommand" : "place where is your aseprite.exe file (or shell shortcut to it)"
+}
