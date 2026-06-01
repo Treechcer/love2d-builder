@@ -8,6 +8,8 @@ Now this can only automatically make `.png` from `.aseprite` / `.ase` file and p
 
 ## Config
 
+All your projects have to their own config file. It has to be in `./love32d-builder/config.json`. It should have the same json structure, if it doesn't it can default into some values which may do something you're not anticipating, be careful.
+
 ```json
 {
     "asepriteFolder" : "aseprite",
@@ -22,3 +24,7 @@ Now this can only automatically make `.png` from `.aseprite` / `.ase` file and p
 - `convertType` type of file you want to convert aseprite into. Defaults to `.png`.
 
 >NOTE: all of these can be changed into ay value by just running the script will shell input, everything has the same name as in config except you have to use `--`, so to change convertType you have to use `--convertType .jpg`.
+
+## Logging
+
+Things that this script are logged. It's logged into file `./love2d-builder/logger.txt`. Errors / exceptions are logged, file exports etc.
