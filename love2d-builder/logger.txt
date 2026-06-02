@@ -1,1 +1,0 @@
-[CONFIG] ./love2d-builder/config.json not found. Using default values and values passed into the script.[UNKNOWN OS] OS was not identified 'Linux'
