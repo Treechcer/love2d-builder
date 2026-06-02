@@ -2,5 +2,6 @@
     "asepriteFolder" : "aseprite",
     "outputFolder" : "assets",
     "asepriteCommand" : "aseprite.exe",
-    "convertType" : ".png"
+    "convertType" : ".png",
+    "disableStdLog" : true
 }

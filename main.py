@@ -11,7 +11,8 @@ inputs = {
     "--outputFolder" : "assets", #destination of covertType files!
     "--convertType" : ".png", #type to which you convert
     "--test" : False, #just test value, will do NOTHING!!!
-    "--asepriteCommand" : "aseprite"
+    "--asepriteCommand" : "aseprite",
+    "--disableStdLog" : False
 }
 try:
     if not os.path.exists("love2d-builder/"):
@@ -26,16 +27,19 @@ def main():
         with open("love2d-builder/config.json") as f:
             config = json.loads(f.read())
     except:
-        log.write("[CONFIG] ./love2d-builder/config.json not found. Using default values and values passed into the script.")
-        print("Log file not found.")
+        writeLog("[CONFIG] ./love2d-builder/config.json not found. Using default values and values passed into the script.\n")
         cfg = open("love2d-builder/config.json", "w")
         cfg.write(json.dumps(inputs))
         cfg.close()
         config = inputs
 
     for i in config:
-        inputs["--" + i] = config[i]
+        if not re.match("--", i):
+            i = "^--" + i
+        inputs[i] = config[i]
 
+    print(inputs["--asepriteCommand"])
+    print(inputs)
 
     tab = sys.argv
     tab = tab[1::1]
@@ -63,11 +67,19 @@ def doFilesFromSource(src):
         if not os.path.isfile(os.path.abspath(src + "/" + i)):
             doFilesFromSource(src + "/" + i)
         else:
-            pathToNewFile = re.sub(inputs["--asepriteFolder"], inputs["--outputFolder"], src)
+            fName, fExtension = os.path.splitext(i)
+            if fExtension != ".aseprite" and fExtension != ".ase":
+                writeLog("[INCORRECT FILE] incorrect file has been tried and is skipped'" + os.path.abspath(src + "/" + i) + "'\n")
+                continue
+            pathToNewFile = re.sub("/" + inputs["--asepriteFolder"] + "/", "/" + inputs["--outputFolder"] + "/", src)
             cmd = inputs["--asepriteCommand"] + " -b " + os.path.abspath(src + "/" + i) + " --save-as " + pathToNewFile + "/" + re.sub("\\.aseprite",inputs["--convertType"],i)
             os.system(cmd)
-            log.write(f"[FILE EXPORT] exported file with commad '{cmd}'\n")
+            writeLog(f"[FILE EXPORT] exported file with commad '{cmd}'\n")
 
+def writeLog(message):
+    log.write(message)
+    if not inputs["--disableStdLog"]:
+        print(message)
 
 if __name__ == "__main__":
     main()
