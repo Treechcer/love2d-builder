@@ -16,7 +16,7 @@ inputs = {
     "--disableStdLog" : False,
     "--mode" : "imageConvert",
     "--gameName" : "nameNotSet",
-    "--loveFiles" : "not-set"
+    "--loveFilesPath" : "not-set" #FOR love.exe!!
 }
 try:
     if not os.path.exists("love2d-builder/"):
@@ -69,19 +69,29 @@ def main():
         build()
 
 def build():
-    os = platform.system().lower()
+    osType = platform.system().lower()
 
     cmd = ""
 
-    if os == "linux" or os == "darwin":
-        cmd = f"zip -9 -r {inputs["--gameName"]}.love ."
-    elif os == "win32":
+    if osType == "linux" or osType == "darwin":
+        cmd = f"zip -9 -r '{inputs["--gameName"]}.love' ."
+    elif osType == "win32":
         cmd = f"Compress-Archive -Path * -DestinationPath '.\{inputs["--gameName"]}.love'"
     else:
         writeLog(f"[UNKNOWN OS] OS was not identified '{os}'\n")
+        exit()
     
     os.system(cmd)
     writeLog(f"[CMD EXECUTE] executed command '{cmd}'\n")
+
+    if osType == "linux" or osType == "darwin":
+        cmd = f"cat '{inputs["--loveFilesPath"]}' '{inputs["--gameName"]}.love' > 'Win-{inputs["--gameName"]}.exe'"
+    elif osType == "win32":
+        cmd = f"cmd /c copy /b '{inputs["--loveFilesPath"]}'+'{inputs["--gameName"]}.love' 'Win-{inputs["--gameName"]}.exe'"
+    
+    os.system(cmd)
+    writeLog(f"[CMD EXECUTE] executed command '{cmd}'\n")
+
 
 def doFilesFromSource(src):
     src = os.path.abspath(src)
