@@ -31,9 +31,7 @@ def main():
         cfg = open("love2d-builder/config.json", "w")
         cfg.write(json.dumps(inputs))
         cfg.close()
-
-        withit  open("love2d-builder/config.json") as f:
-            config = json.loads(f.read())
+        config = inputs
 
     for i in config:
         inputs["--" + i] = config[i]
