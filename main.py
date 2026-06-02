@@ -2,6 +2,7 @@ import sys
 import os
 import re
 import json
+import platform
 
 global inputs
 
@@ -12,7 +13,10 @@ inputs = {
     "--convertType" : ".png", #type to which you convert
     "--test" : False, #just test value, will do NOTHING!!!
     "--asepriteCommand" : "aseprite",
-    "--disableStdLog" : False
+    "--disableStdLog" : False,
+    "--mode" : "imageConvert",
+    "--gameName" : "nameNotSet",
+    "--loveFiles" : "not-set"
 }
 try:
     if not os.path.exists("love2d-builder/"):
@@ -38,8 +42,8 @@ def main():
             i = "^--" + i
         inputs[i] = config[i]
 
-    print(inputs["--asepriteCommand"])
-    print(inputs)
+    #print(inputs["--asepriteCommand"])
+    #print(inputs)
 
     tab = sys.argv
     tab = tab[1::1]
@@ -57,9 +61,27 @@ def main():
     #print(os.listdir(inputs["--asepriteFolder"]))
     #print(os.listdir(inputs["--outputFolder"]))
 
-    asespriteFiles = os.listdir(inputs["--asepriteFolder"])
+    #asespriteFiles = os.listdir(inputs["--asepriteFolder"])
 
-    doFilesFromSource(inputs["--asepriteFolder"])
+    if inputs["--mode"] == "imageConvert":
+        doFilesFromSource(inputs["--asepriteFolder"])
+    elif inputs["--mode"] == "build":
+        build()
+
+def build():
+    os = platform.system().lower()
+
+    cmd = ""
+
+    if os == "linux" or os == "darwin":
+        cmd = f"zip -9 -r {inputs["--gameName"]}.love ."
+    elif os == "win32":
+        cmd = f"Compress-Archive -Path * -DestinationPath '.\{inputs["--gameName"]}.love'"
+    else:
+        writeLog(f"[UNKNOWN OS] OS was not identified '{os}'\n")
+    
+    os.system(cmd)
+    writeLog(f"[CMD EXECUTE] executed command '{cmd}'\n")
 
 def doFilesFromSource(src):
     src = os.path.abspath(src)
