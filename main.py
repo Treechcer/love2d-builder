@@ -13,8 +13,12 @@ inputs = {
     "--test" : False, #just test value, will do NOTHING!!!
     "--asepriteCommand" : "aseprite"
 }
-
-log = open("love2d-builder/logger.txt", "a")
+try:
+    if not os.path.exists("love2d-builder/"):
+        os.makedirs("love2d-builder/")
+    log = open("love2d-builder/logger.txt", "a")
+except:
+    log = open("love2d-builder/logger.txt", "x")
 
 def main():
     global pathStart
@@ -24,6 +28,12 @@ def main():
     except:
         log.write("[CONFIG] ./love2d-builder/config.json not found. Using default values and values passed into the script.")
         print("Log file not found.")
+        cfg = open("love2d-builder/config.json", "w")
+        cfg.write(json.dumps(inputs))
+        cfg.close()
+
+        withit  open("love2d-builder/config.json") as f:
+            config = json.loads(f.read())
 
     for i in config:
         inputs["--" + i] = config[i]
@@ -63,3 +73,5 @@ def doFilesFromSource(src):
 
 if __name__ == "__main__":
     main()
+
+log.close()
