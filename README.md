@@ -8,13 +8,13 @@ Now this can only automatically make `.png` from `.aseprite` / `.ase` file and p
 
 ## Config
 
-All your projects have to their own config file. It has to be in `./love32d-builder/config.json`. It should have the same json structure, if it doesn't it can default into some values which may do something you're not anticipating, be careful.
+All your projects have to their own config file. It has to be in `./love2d-builder/config.json`. It should have the same json structure, if it doesn't it can default into some values which may do something you're not anticipating, be careful.
 
 ```json
 {
     "asepriteFolder" : "aseprite",
     "outputFolder" : "assets",
-    "asepriteCommand" : "place where is your aseprite.exe file (or shell shortcut to it)"
+    "asepriteCommand" : "C:\ase\aseprite.exe"
 }
 ```
 
