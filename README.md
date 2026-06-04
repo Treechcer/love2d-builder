@@ -32,4 +32,3 @@ Things that this script are logged. It's logged into file `./love2d-builder/logg
 ## State
 
 - This is in development, not really active, it's side project, any issues will be answered.
-- Currently, this doesn't work on windows. This will be one day fixed.

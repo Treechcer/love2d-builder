@@ -3,8 +3,11 @@ import os
 import re
 import json
 import platform
+import subprocess
+import time
+import math
 
-global inputs
+global inputs, processes
 
 pathStart = ""
 inputs = {
@@ -18,12 +21,24 @@ inputs = {
     "--gameName" : "nameNotSet",
     "--loveFilesPath" : "not-set" #FOR love.exe!!
 }
+
+processes = []
+
+machineOs = platform.system().lower()
+
 try:
     if not os.path.exists("love2d-builder/"):
         os.makedirs("love2d-builder/")
     log = open("love2d-builder/logger.txt", "a")
 except:
     log = open("love2d-builder/logger.txt", "x")
+
+slash = ""
+
+if machineOs == "linux" or os == "darwin":
+    slash = "/"
+else:
+    slash = "\\"
 
 def main():
     global pathStart
@@ -65,6 +80,7 @@ def main():
 
     if inputs["--mode"] == "imageConvert":
         doFilesFromSource(inputs["--asepriteFolder"])
+        checkProcesses()
     elif inputs["--mode"] == "build":
         build()
 
@@ -76,7 +92,7 @@ def build():
     if osType == "linux" or osType == "darwin":
         cmd = f"zip -9 -r '{inputs["--gameName"]}.love' ."
     elif osType == "win32":
-        cmd = f"Compress-Archive -Path * -DestinationPath '.\{inputs["--gameName"]}.love'"
+        cmd = f"Compress-Archive -Path * -DestinationPath '.\\{inputs["--gameName"]}.love'"
     else:
         writeLog(f"[UNKNOWN OS] OS was not identified '{os}'\n")
         exit()
@@ -92,7 +108,6 @@ def build():
     os.system(cmd)
     writeLog(f"[CMD EXECUTE] executed command '{cmd}'\n")
 
-
 def doFilesFromSource(src):
     src = os.path.abspath(src)
     for i in os.listdir(src):
@@ -103,10 +118,27 @@ def doFilesFromSource(src):
             if fExtension != ".aseprite" and fExtension != ".ase":
                 writeLog("[INCORRECT FILE] incorrect file has been tried and is skipped'" + os.path.abspath(src + "/" + i) + "'\n")
                 continue
-            pathToNewFile = re.sub("/" + inputs["--asepriteFolder"] + "/", "/" + inputs["--outputFolder"] + "/", src)
-            cmd = inputs["--asepriteCommand"] + " -b " + os.path.abspath(src + "/" + i) + " --save-as " + pathToNewFile + "/" + re.sub("\\.aseprite",inputs["--convertType"],i)
-            os.system(cmd)
-            writeLog(f"[FILE EXPORT] exported file with commad '{cmd}'\n")
+            pathToNewFile = src.replace(slash + inputs["--asepriteFolder"] + slash, slash + inputs["--outputFolder"] + slash)
+            cmd = "\"" + inputs["--asepriteCommand"] + "\" -b \"" + os.path.abspath(src + "/" + i) + "\" --save-as \"" + pathToNewFile + "/" + re.sub("\\.aseprite",inputs["--convertType"] + "\"",i)
+            processes.append(subprocess.Popen(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))
+
+def checkProcesses():
+    lastNumProcesses = len(processes)
+    maxProcess = lastNumProcesses
+    while len(processes) > 0:
+        for i, process in enumerate(processes[:], 1):
+            if not process.poll() is None:
+                processes.remove(process)
+        
+        if lastNumProcesses != len(processes):
+            lastNumProcesses = len(processes)
+            percent = math.floor(100 - (lastNumProcesses / maxProcess * 100))
+            charBar = "█" * math.floor(percent/10) + " " * (10 - math.floor(percent/10))
+            bar = f"{percent}% [{charBar}]"
+            print(f"\rProcess remaining: {lastNumProcesses}      |      {bar}              ", end="")
+            sys.stdout.flush()
+        
+        time.sleep(1)
 
 def writeLog(message):
     log.write(message)
