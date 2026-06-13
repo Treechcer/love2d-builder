@@ -6,8 +6,25 @@ import platform
 import subprocess
 import time
 import math
+import zipfile
 
 global inputs, processes
+
+loveFiles = {
+    "win" : [
+        "love-win64",
+        "love-win32"
+    ],
+    "linux" : [
+
+    ],
+    "macos" : [
+
+    ],
+    "android" : [
+
+    ]
+}
 
 pathStart = ""
 inputs = {
@@ -48,7 +65,7 @@ def main():
     except:
         writeLog("[CONFIG] ./love2d-builder/config.json not found. Using default values and values passed into the script.\n")
         cfg = open("love2d-builder/config.json", "w")
-        cfg.write(json.dumps(inputs))
+        cfg.write(json.dumps(inputs, indent=4))
         cfg.close()
         config = inputs
 
@@ -84,7 +101,40 @@ def main():
     elif inputs["--mode"] == "build":
         build()
 
+def checkFile(file, path):
+    if not os.path.isdir(path + "/" + file):
+        try:
+            with zipfile.ZipFile(path + "/" + file + ".zip", "r") as zipr:
+                zipr.extractall("love2d-builder/")
+        except:
+            return False
+        
+    return True
+
+def checkLoveFiles():
+    #if inputs["--loveFilesPath"] == "not-set":
+    #    writeLog("[Love Files] Love folders path was not set, looking into ./love2d-builder/love___/")
+    #    if not os.path.isdir("love2d-builder/love-win64") and not os.path.isdir("love2d-builder/love-win32") and not os.path.isdir("love2d-builder/love-macos"): #NOTE: this doesn't check linux files because too hard for now
+    #        if not os.path.exists("love2d-builder/love-win64.zip") and not os.path.exists("love2d-builder/love-win32.zip") and not os.path.exists("love2d-builder/love-macos.zip"):
+    #            with zipfile.ZipFile("love2d-builder/love-win64.zip", "r") as zipr:
+    #                zipr.extractall("love2d-builder")
+    #        writeLog("[Love Files] not found any files, want to download them with this script? y/n")
+    #        inputAsk = ""
+    #        while input != "y" and input != "n":
+    #            print("y/n")
+    #            inputAsk = input()
+    #        
+    #        if inputAsk == "y":
+    #            pass
+    #        elif inputAsk == "n":
+    #            writeLog("[Love Files] no files were downloaded")
+    #            exit()
+
+    folder = inputs["--loveFilesPath"] if inputs["--loveFilesPath"] != "not-set" else ("love2d-builder", writeLog("[Love Files] Love folders path was not set, looking into ./love2d-builder/love___/"))[0]
+
 def build():
+    checkLoveFiles()
+
     osType = platform.system().lower()
 
     cmd = ""
