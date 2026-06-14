@@ -7,6 +7,7 @@ import subprocess
 import time
 import math
 import zipfile
+import requests
 
 global inputs, processes, loveFiles, loveData
 
@@ -31,32 +32,37 @@ def getDefaultLoveData():
             "windows32": {
                 "version": 11.5,
                 "backupVersion": None,
-                "folder" : "love-win64",
-                "build" : True
+                "folder" : "love-win32",
+                "build" : True,
+                "lovePlatformName" : "win32"
             },
             "windows64": {
                 "version": 11.5,
                 "backupVersion": None,
-                "folder" : "love-win32",
-                "build" : True
+                "folder" : "love-win64",
+                "build" : True,
+                "lovePlatformName" : "win64"
             },
             "linux": {
                 "version": 11.5,
                 "backupVersion": None,
                 "folder" : "-----",
-                "build" : False
+                "build" : False,
+                "lovePlatformName" : None
             },
             "macos": {
                 "version": 11.5,
                 "backupVersion": None,
                 "folder" : "-----",
-                "build" : False
+                "build" : False,
+                "lovePlatformName" : None
             },
             "android": {
                 "version": 11.5,
                 "backupVersion": None,
                 "folder" : "-----",
-                "build" : False
+                "build" : False,
+                "lovePlatformName" : None
             }
         }
 
@@ -151,7 +157,7 @@ def checkFile(file, path):
     if not os.path.isdir(path + "/" + file):
         try:
             with zipfile.ZipFile(path + "/" + file + ".zip", "r") as zipr:
-                zipr.extractall("love2d-builder/")
+                zipr.extractall(path)
                 name = zipr.namelist()[0].split("/")[0]
 
                 #print(os.path.abspath(os.path.join(path + "/" + file)), os.path.abspath(os.path.join(path + "/" + name)))
@@ -162,24 +168,6 @@ def checkFile(file, path):
     return True
 
 def checkLoveFiles():
-    #if inputs["--loveFilesPath"] == "not-set":
-    #    writeLog("[Love Files] Love folders path was not set, looking into ./love2d-builder/love___/")
-    #    if not os.path.isdir("love2d-builder/love-win64") and not os.path.isdir("love2d-builder/love-win32") and not os.path.isdir("love2d-builder/love-macos"): #NOTE: this doesn't check linux files because too hard for now
-    #        if not os.path.exists("love2d-builder/love-win64.zip") and not os.path.exists("love2d-builder/love-win32.zip") and not os.path.exists("love2d-builder/love-macos.zip"):
-    #            with zipfile.ZipFile("love2d-builder/love-win64.zip", "r") as zipr:
-    #                zipr.extractall("love2d-builder")
-    #        writeLog("[Love Files] not found any files, want to download them with this script? y/n")
-    #        inputAsk = ""
-    #        while input != "y" and input != "n":
-    #            print("y/n")
-    #            inputAsk = input()
-    #        
-    #        if inputAsk == "y":
-    #            pass
-    #        elif inputAsk == "n":
-    #            writeLog("[Love Files] no files were downloaded")
-    #            exit()
-
     folder = inputs["--loveFilesPath"] if inputs["--loveFilesPath"] != "not-set" else ("love2d-builder", writeLog("[Love Files] Love folders path was not set, looking into ./love2d-builder/love___/"))[0]
     
     for key in loveData:
@@ -201,10 +189,34 @@ def checkLoveFiles():
                 userInput = input("Do you want to download love folder Files? y/n ")
             
             if userInput == "y":
-                pass
+                retry = True
+                while retry:
+                    url = f"https://github.com/love2d/love/releases/download/{platform['version']}/love-{platform['version']}-{platform['lovePlatformName']}.zip"
+                    response = requests.get(url, stream=True)
+                    if response.status_code == 200:
+                        with open(f"{folder}/love-{platform['lovePlatformName']}.zip", "wb") as f:
+                            for chunk in response.iter_content(chunk_size=8192):
+                                if chunk:
+                                    f.write(chunk)
+                        
+                        retry = False
+                    else:
+                        #TODO: TEST THIS PART!!
+
+                        writeLog(f"[Download error], '{response.status_code}', do you want to try it again?")
+                        retryInput = ""
+                        while retryInput != "y" and retryInput != "n":
+                            retryInput = input("Do you want to try to download love folder Files? y/n ")
+                        
+                        retry = True if retryInput == "y" else False
+                        
+                    print(folder, f"love-{platform['lovePlatformName']}.zip")
+                    if not checkFile(name, folder):
+                        writeLog("[Unexpected Error] file was downloaded but not found?")
 
 
 def build():
+    #TODO: check love-data and build acordingly to what is there, for now I'll make it build everything but whatever for now
     checkLoveFiles()
 
     osType = platform.system().lower()
