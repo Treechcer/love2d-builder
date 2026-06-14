@@ -29,6 +29,11 @@ global inputs, processes, loveFiles, loveData
 
 def getDefaultLoveData():
     return {
+            "buildData" : {
+                "folderIgnore" : [
+                    "aseprite"
+                ]
+            },
             "windows32": {
                 "version": 11.5,
                 "backupVersion": None,
@@ -170,8 +175,12 @@ def checkFile(file, path):
 
 def checkLoveFiles():
     folder = inputs["--loveFilesPath"] if inputs["--loveFilesPath"] != "not-set" else ("love2d-builder", writeLog("[Love Files] Love folders path was not set, looking into ./love2d-builder/love___/"))[0]
-    
+    inputs["--loveFilesPath"] = folder
+
     for key in loveData:
+        if key == "buildData":
+            continue
+
         platform = loveData[key]
         if not platform["build"]:
             continue
@@ -215,11 +224,7 @@ def checkLoveFiles():
                     if not checkFile(name, folder):
                         writeLog("[Unexpected Error] file was downloaded but not found?")
 
-
-def build():
-    #TODO: check love-data and build acordingly to what is there, for now I'll make it build everything but whatever for now
-    checkLoveFiles()
-
+def buildWin():
     osType = platform.system().lower()
 
     cmd = ""
@@ -227,7 +232,15 @@ def build():
     if osType == "linux" or osType == "darwin":
         cmd = f"zip -9 -r '{inputs["--gameName"]}.love' ."
     elif osType == "win32" or osType == "windows":
-        cmd = f"Compress-Archive -Path * -DestinationPath '.\\{inputs["--gameName"]}.love'"
+        items = []
+        for item in os.listdir():
+            #print(item)
+            if item == "love2d-builder" or item in loveData["buildData"]["folderIgnore"]:
+                writeLog(f"[File Ignore] {item}")
+                continue
+            items.append(item)
+        
+        cmd = f"powershell -Command Compress-Archive -Path {", ".join(items)} -DestinationPath '.\\{inputs["--gameName"]}.love'"
     else:
         writeLog(f"[UNKNOWN OS] OS was not identified '{osType}'")
         exit()
@@ -238,10 +251,15 @@ def build():
     if osType == "linux" or osType == "darwin":
         cmd = f"cat '{inputs["--loveFilesPath"]}' '{inputs["--gameName"]}.love' > 'Win-{inputs["--gameName"]}.exe'"
     elif osType == "win32" or osType == "windows":
-        cmd = f"cmd /c copy /b '{inputs["--loveFilesPath"]}'+'{inputs["--gameName"]}.love' 'Win-{inputs["--gameName"]}.exe'"
+        cmd = f"cmd /c copy /b ./{inputs["--loveFilesPath"]}/love-win64/love.exe+{inputs["--gameName"]}.love Win-{inputs["--gameName"]}.exe"
     
     os.system(cmd)
     writeLog(f"[CMD EXECUTE] executed command '{cmd}'")
+
+def build():
+    #TODO: check love-data and build acordingly to what is there, for now I'll make it build everything but whatever for now
+    checkLoveFiles()
+    buildWin()
 
 def doFilesFromSource(src):
     src = os.path.abspath(src)
