@@ -63,7 +63,7 @@ def main():
         with open("love2d-builder/config.json") as f:
             config = json.loads(f.read())
     except:
-        writeLog("[CONFIG] ./love2d-builder/config.json not found. Using default values and values passed into the script.\n")
+        writeLog("[CONFIG] ./love2d-builder/config.json not found. Using default values and values passed into the script.")
         cfg = open("love2d-builder/config.json", "w")
         cfg.write(json.dumps(inputs, indent=4))
         cfg.close()
@@ -106,6 +106,10 @@ def checkFile(file, path):
         try:
             with zipfile.ZipFile(path + "/" + file + ".zip", "r") as zipr:
                 zipr.extractall("love2d-builder/")
+                name = zipr.namelist()[0].split("/")[0]
+
+                #print(os.path.abspath(os.path.join(path + "/" + file)), os.path.abspath(os.path.join(path + "/" + name)))
+                os.rename(os.path.abspath(os.path.join(path + "/" + name)), os.path.abspath(os.path.join(path + "/" + file)))
         except:
             return False
         
@@ -131,6 +135,10 @@ def checkLoveFiles():
     #            exit()
 
     folder = inputs["--loveFilesPath"] if inputs["--loveFilesPath"] != "not-set" else ("love2d-builder", writeLog("[Love Files] Love folders path was not set, looking into ./love2d-builder/love___/"))[0]
+    
+    for key in loveFiles:
+        for name in loveFiles[key]:
+            print(checkFile(name, folder))
 
 def build():
     checkLoveFiles()
@@ -144,11 +152,11 @@ def build():
     elif osType == "win32":
         cmd = f"Compress-Archive -Path * -DestinationPath '.\\{inputs["--gameName"]}.love'"
     else:
-        writeLog(f"[UNKNOWN OS] OS was not identified '{os}'\n")
+        writeLog(f"[UNKNOWN OS] OS was not identified '{os}'")
         exit()
     
     os.system(cmd)
-    writeLog(f"[CMD EXECUTE] executed command '{cmd}'\n")
+    writeLog(f"[CMD EXECUTE] executed command '{cmd}'")
 
     if osType == "linux" or osType == "darwin":
         cmd = f"cat '{inputs["--loveFilesPath"]}' '{inputs["--gameName"]}.love' > 'Win-{inputs["--gameName"]}.exe'"
@@ -156,7 +164,7 @@ def build():
         cmd = f"cmd /c copy /b '{inputs["--loveFilesPath"]}'+'{inputs["--gameName"]}.love' 'Win-{inputs["--gameName"]}.exe'"
     
     os.system(cmd)
-    writeLog(f"[CMD EXECUTE] executed command '{cmd}'\n")
+    writeLog(f"[CMD EXECUTE] executed command '{cmd}'")
 
 def doFilesFromSource(src):
     src = os.path.abspath(src)
@@ -166,7 +174,7 @@ def doFilesFromSource(src):
         else:
             fName, fExtension = os.path.splitext(i)
             if fExtension != ".aseprite" and fExtension != ".ase":
-                writeLog("[INCORRECT FILE] incorrect file has been tried and is skipped'" + os.path.abspath(src + "/" + i) + "'\n")
+                writeLog("[INCORRECT FILE] incorrect file has been tried and is skipped'" + os.path.abspath(src + "/" + i) + "'")
                 continue
             pathToNewFile = src.replace(slash + inputs["--asepriteFolder"] + slash, slash + inputs["--outputFolder"] + slash)
             cmd = "\"" + inputs["--asepriteCommand"] + "\" -b \"" + os.path.abspath(src + "/" + i) + "\" --save-as \"" + pathToNewFile + "/" + re.sub("\\.aseprite",inputs["--convertType"] + "\"",i)
@@ -191,6 +199,8 @@ def checkProcesses():
         time.sleep(1)
 
 def writeLog(message):
+    if message[-1] != "\n":
+        message += "\n"
     log.write(message)
     if not inputs["--disableStdLog"]:
         print(message)
