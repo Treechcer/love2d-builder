@@ -78,7 +78,8 @@ inputs = {
     "--disableStdLog" : False,
     "--mode" : "imageConvert",
     "--gameName" : "nameNotSet",
-    "--loveFilesPath" : "not-set" #FOR love.exe!!
+    "--loveFilesPath" : "not-set", #FOR love.exe!!
+    "--downloadAuto" : False, #auto downloads the love files if missing
 }
 
 processes = []
@@ -183,7 +184,7 @@ def checkLoveFiles():
         else:
             writeLog(f"[Love Files] not found '{name}' in directory '{folder}', do you want to download them?")
             
-            userInput = ""
+            userInput = "y" if inputs["--downloadAuto"] else ""
 
             while userInput != "y" and userInput != "n":
                 userInput = input("Do you want to download love folder Files? y/n ")
