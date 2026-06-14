@@ -8,23 +8,59 @@ import time
 import math
 import zipfile
 
-global inputs, processes
+global inputs, processes, loveFiles, loveData
 
-loveFiles = {
-    "win" : [
-        "love-win64",
-        "love-win32"
-    ],
-    "linux" : [
+#loveFiles = {
+#    "win" : [
+#        "love-win64",
+#        "love-win32"
+#    ],
+#    "linux" : [
+#
+#    ],
+#    "macos" : [
+#
+#    ],
+#    "android" : [
+#
+#    ]
+#}
 
-    ],
-    "macos" : [
+def getDefaultLoveData():
+    return {
+            "windows32": {
+                "version": 11.5,
+                "backupVersion": None,
+                "folder" : "love-win64",
+                "build" : True
+            },
+            "windows64": {
+                "version": 11.5,
+                "backupVersion": None,
+                "folder" : "love-win32",
+                "build" : True
+            },
+            "linux": {
+                "version": 11.5,
+                "backupVersion": None,
+                "folder" : "-----",
+                "build" : False
+            },
+            "macos": {
+                "version": 11.5,
+                "backupVersion": None,
+                "folder" : "-----",
+                "build" : False
+            },
+            "android": {
+                "version": 11.5,
+                "backupVersion": None,
+                "folder" : "-----",
+                "build" : False
+            }
+        }
 
-    ],
-    "android" : [
-
-    ]
-}
+loveData = getDefaultLoveData()
 
 pathStart = ""
 inputs = {
@@ -59,6 +95,16 @@ else:
 
 def main():
     global pathStart
+
+    try:
+        with open("love2d-builder/love-data.json") as f:
+            loveData = json.loads(f.read())
+    except:
+        writeLog("[Love Data] ./love2d-builder/love-data.json not found. Using default values and values.")
+        cfg = open("love2d-builder/love-data.json", "w")
+        cfg.write(json.dumps(getDefaultLoveData(), indent=4))
+        cfg.close()
+
     try:
         with open("love2d-builder/config.json") as f:
             config = json.loads(f.read())
@@ -136,9 +182,27 @@ def checkLoveFiles():
 
     folder = inputs["--loveFilesPath"] if inputs["--loveFilesPath"] != "not-set" else ("love2d-builder", writeLog("[Love Files] Love folders path was not set, looking into ./love2d-builder/love___/"))[0]
     
-    for key in loveFiles:
-        for name in loveFiles[key]:
-            print(checkFile(name, folder))
+    for key in loveData:
+        platform = loveData[key]
+        if not platform["build"]:
+            continue
+
+        name = platform["folder"]
+
+        if checkFile(name, folder):
+            #BUILD GAME!!!
+            pass
+        else:
+            writeLog(f"[Love Files] not found '{name}' in directory '{folder}', do you want to download them?")
+            
+            userInput = ""
+
+            while userInput != "y" and userInput != "n":
+                userInput = input("Do you want to download love folder Files? y/n ")
+            
+            if userInput == "y":
+                pass
+
 
 def build():
     checkLoveFiles()
@@ -149,10 +213,10 @@ def build():
 
     if osType == "linux" or osType == "darwin":
         cmd = f"zip -9 -r '{inputs["--gameName"]}.love' ."
-    elif osType == "win32":
+    elif osType == "win32" or osType == "windows":
         cmd = f"Compress-Archive -Path * -DestinationPath '.\\{inputs["--gameName"]}.love'"
     else:
-        writeLog(f"[UNKNOWN OS] OS was not identified '{os}'")
+        writeLog(f"[UNKNOWN OS] OS was not identified '{osType}'")
         exit()
     
     os.system(cmd)
@@ -160,7 +224,7 @@ def build():
 
     if osType == "linux" or osType == "darwin":
         cmd = f"cat '{inputs["--loveFilesPath"]}' '{inputs["--gameName"]}.love' > 'Win-{inputs["--gameName"]}.exe'"
-    elif osType == "win32":
+    elif osType == "win32" or osType == "windows":
         cmd = f"cmd /c copy /b '{inputs["--loveFilesPath"]}'+'{inputs["--gameName"]}.love' 'Win-{inputs["--gameName"]}.exe'"
     
     os.system(cmd)
