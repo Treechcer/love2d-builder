@@ -85,6 +85,7 @@ inputs = {
     "--gameName" : "nameNotSet",
     "--loveFilesPath" : "not-set", #FOR love.exe!!
     "--downloadAuto" : False, #auto downloads the love files if missing
+    "--cmdCommand" : "cmd.exe"
 }
 
 processes = []
@@ -251,7 +252,7 @@ def buildWin():
     if osType == "linux" or osType == "darwin":
         cmd = f"cat '{inputs["--loveFilesPath"]}' '{inputs["--gameName"]}.love' > 'Win-{inputs["--gameName"]}.exe'"
     elif osType == "win32" or osType == "windows":
-        cmd = f"cmd /c copy /b ./{inputs["--loveFilesPath"]}/love-win64/love.exe+{inputs["--gameName"]}.love Win-{inputs["--gameName"]}.exe"
+        cmd = f"{inputs["--cmdCommand"]} /c copy /b {inputs["--loveFilesPath"]}\love-win64\love.exe+{inputs["--gameName"]}.love Win64-{inputs["--gameName"]}.exe"
     
     os.system(cmd)
     writeLog(f"[CMD EXECUTE] executed command '{cmd}'")
