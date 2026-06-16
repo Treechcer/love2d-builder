@@ -175,8 +175,13 @@ def checkFile(file, path):
     return True
 
 def checkLoveFiles():
-    folder = inputs["--loveFilesPath"] if inputs["--loveFilesPath"] != "not-set" else ("love2d-builder", writeLog("[Love Files] Love folders path was not set, looking into ./love2d-builder/love___/"))[0]
+    folder = inputs["--loveFilesPath"] if inputs["--loveFilesPath"] != "not-set" else (os.path.join("love2d-builder", "love"), writeLog("[Love Files] Love folders path was not set, looking into ./love2d-builder/love___/"))[0]
     inputs["--loveFilesPath"] = folder
+    
+    try:
+        os.makedirs(folder)
+    except:
+        pass
 
     for key in loveData:
         if key == "buildData":
