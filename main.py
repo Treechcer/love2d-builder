@@ -51,23 +51,30 @@ def getDefaultLoveData():
             "linux": {
                 "version": 11.5,
                 "backupVersion": None,
-                "folder" : "-----",
-                "build" : False,
-                "lovePlatformName" : None
+                "folder" : "love-linux",
+                "build" : True,
+                "lovePlatformName" : "linux"
             },
             "macos": {
                 "version": 11.5,
                 "backupVersion": None,
-                "folder" : "-----",
+                "folder" : "love-macos",
                 "build" : False,
-                "lovePlatformName" : None
+                "lovePlatformName" : "macos "
             },
             "android": {
                 "version": 11.5,
                 "backupVersion": None,
-                "folder" : "-----",
+                "folder" : "love-android",
                 "build" : False,
-                "lovePlatformName" : None
+                "lovePlatformName" : "android"
+            },
+            "ios" : {
+                "version": 11.5,
+                "backupVersion": None,
+                "folder" : "love-ios",
+                "build" : False,
+                "lovePlatformName" : "android"
             }
         }
 
